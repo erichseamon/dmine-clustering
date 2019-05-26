@@ -1,5 +1,5 @@
 ---
-title: "Water Scarcity Unsupervised Agricultural Insurance Loss Clustering"
+title: "Water Excess Unsupervised Agricultural Insurance Loss Clustering"
 author: "Erich Seamon"
 date: "2/18/2019"
 output:
@@ -22,15 +22,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r, results='asis', echo=FALSE, include=FALSE}
-years <- 2015
-crops <- "WHEAT"
+years <- 2011
+crops <- "CORN"
 units <- "Lossperacre"
 
 #clustering distance option
 clustering_distance <- "euclidean"
 
 #Water Scarcity and excess damage cause lists
-waterscarcity <- c("State", "County", "Year", "Commodity", "Drought","Failure Irrig Supply","Fire", "Heat", "Hot Wind")
+waterexcess <- c("State", "County", "Year", "Commodity", "Drought","Failure Irrig Supply","Fire", "Heat", "Hot Wind")
 
 library(cluster)
 library(factoextra)
@@ -111,7 +111,7 @@ if(myCondition) {
   damage_loss <- damage_loss[,5:length(waterscarcity)]
   
   #remove damage causes that have NO values for ANY counties
-  #damage_loss <- damage_loss[, colSums(damage_loss != 0) > 0]
+  damage_loss <- damage_loss[, colSums(damage_loss != 0) > 0]
   
 ```
   

@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #generates html in /waf/paper3 location for public use
 
-#years <- 2009
+#years <- 2011
 #crops <- "CORN"
 #units <- "Lossperacre"
 #clustering_distance <- "euclidean"

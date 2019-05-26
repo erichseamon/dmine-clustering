@@ -13,11 +13,11 @@
 #damagetype options: waterscarcity OR waterexcess
 #agloss_unsupervised(2014, WHEAT, Lossperacres, waterscarcity)
 
-agloss_unsupervised <- function(years, crops, units) {
+agloss_unsupervised <- function(years, crops, units, damagetype) {
   
   #Water Scarcity and excess damage cause lists
   waterscarcity <- c("State", "County", "Year", "Commodity", "Drought","Failure Irrig Supply","Fire", "Heat", "Hot Wind")
-  #waterexcess <- c("State", "County", "Year", "Commodity", "Excess Moisture/Precip/Rain", "Flood","Storm Surge")
+  waterexcess <- c("State", "County", "Year", "Commodity", "Excess Moisture/Precip/Rain", "Flood","Storm Surge")
   
   #years <- 2011
   #crops <- "WHEAT"
@@ -31,19 +31,17 @@ agloss_unsupervised <- function(years, crops, units) {
   library(RColorBrewer)
   library(ff)
   
-  gc()
-  
   #access data from nextcloud
-  #damage <- fread("https://nextcloud.sesync.org/index.php/s/W5kztdb5ZkxRptT/download", header = TRUE)
+  #damage <- read.csv("https://nextcloud.sesync.org/index.php/s/W5kztdb5ZkxRptT/download")
   
   #access data from local UI server
   #damage <- read.csv("/dmine/code/git/dmine-clustering/damage.csv")
   #damage <- damage[,3:13]
-   
+  gc() 
   
   #access data from google drive
   id <- "1RxLEi0DiwMZFIw5CSBaEFjlLG67bKyLV" # google file ID
-  damage <- fread(sprintf("https://docs.google.com/uc?id=%s&export=download", id), header = TRUE)
+  damage <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", id), header = TRUE)
   damage <- damage[,2:12]
   
   #access data from local sesync server
@@ -74,15 +72,15 @@ agloss_unsupervised <- function(years, crops, units) {
   damage_loss <- subset(damage_loss, Year == years)
   
   #select only damage causes that are associates with Water Scarcity
-  damage_loss <- subset(damage_loss, select= waterscarcity)
+  damage_loss <- subset(damage_loss, select= damagetype)
   damage_loss <- transform(damage_loss, ID=paste(State, County, sep="-"))
   rownames(damage_loss) <- damage_loss$ID
   
-  
+
   damage_loss <- damage_loss[,5:length(damagetype)]
   
   #remove damage causes that have NO values for ANY counties
-  damage_loss <- damage_loss[, colSums(damage_loss != 0) > 0]
+  #damage_loss <- damage_loss[, colSums(damage_loss != 0) > 0]
   
   
   #library("factoextra")
@@ -107,29 +105,29 @@ agloss_unsupervised <- function(years, crops, units) {
   #options(warn = oldw)
   
   
-  
+
   #identify the optimum number of clusters using NbClust
-  par(mar=c(1,1,1,1))
+  
   library("NbClust")
-  clust<-NbClust(damage_loss[,1:(length(waterscarcity)-4)], diss=NULL, distance = "euclidean", min.nc=2, max.nc=20, 
+  res<-NbClust(damage_loss[,2:(length(eval(damagetype)-4))], diss=NULL, distance = "euclidean", min.nc=2, max.nc=20, 
                method = "kmeans", index = "all") 
-  #res$All.index
-  #res$Best.nc
-  #res$All.CriticalValues
-  #res$Best.partition
+  res$All.index
+  res$Best.nc
+  res$All.CriticalValues
+  res$Best.partition
   
-  maxclusters <- length(unique(clust$Best.partition))
+  maxclusters <- length(unique(res$Best.partition))
   
   
   
-  #fbviz_cluster elbow plot 
-  #  opt_cluster <- fviz_nbclust(damage_loss, kmeans, method = "wss")  +
-  #    geom_vline(xintercept = 3, linetype = 2) + labs(title= paste(crops, " ", years, " ", units, sep=""))
+ #fbviz_cluster elbow plot 
+#  opt_cluster <- fviz_nbclust(damage_loss, kmeans, method = "wss")  +
+#    geom_vline(xintercept = 3, linetype = 2) + labs(title= paste(crops, " ", years, " ", units, sep=""))
   #km.res <- kmeans(damage_loss, which.max(opt_cluster$data[1:10,2]), nstart = 25)
   
   
   km.res <- kmeans(damage_loss, maxclusters, nstart = 25)
-  
+
   # Visualize clusters
   library("factoextra")
   clusterplot <- fviz_cluster(km.res, data = damage_loss, ellipse.type = "norm", main = paste(crops, " ", years, " ", units, sep=""))+
@@ -186,7 +184,7 @@ agloss_unsupervised <- function(years, crops, units) {
               position = "bottomright")
   
   #return(list(opt_cluster, fviz_cluster(km.res, data = damage_loss, ellipse.type = "norm", main = paste("Corn ", years, " Loss", sep=""))+
-  #          theme_minimal(), map))
+      #          theme_minimal(), map))
   return(list(clusterplot, map))
   
 }
